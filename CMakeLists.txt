@@ -60,11 +60,11 @@ set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}")
 ###############################################################################
 #   Ogre
 ###############################################################################
-set ( OGRE_LIBRARY_NAMES OgreMain )
+set ( OGRE_LIBRARY_NAMES_REL OgreMain )
+set ( OGRE_LIBRARY_NAMES_DEBUG OgreMain_d )
 
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-	set ( OGRE_LIBRARY_NAMES OgreMain_d )
-endif ()
+find_library (OGRE_LIBRARIES_REL ${OGRE_LIBRARY_NAMES_REL} PATHS "${OGRE_HOME}/lib/${CMAKE_BUILD_TYPE}")
+find_library (OGRE_LIBRARIES_DEBUG 	${OGRE_LIBRARY_NAMES_DEBUG} PATHS "${OGRE_HOME}/lib/${CMAKE_BUILD_TYPE}")
 
 find_path ( OGRE_INCLUDE_DIRS
   	Ogre.h PATHS
@@ -72,12 +72,6 @@ find_path ( OGRE_INCLUDE_DIRS
  	"${OGRE_HOME}/include/OGRE"
  )
 
-find_library (OGRE_LIBRARIES
- ${OGRE_LIBRARY_NAMES} PATHS
- "${OGRE_HOME}/lib/${CMAKE_BUILD_TYPE}"
-)
-
- #### message(STATUS !!!!!!!!!!!!!!! ${OGRE_LIBRARY_REL})
 ################################################################################
 #   Boost
 ################################################################################
@@ -105,7 +99,6 @@ if (USE_BOOST)
 	# Set up referencing of Boost
 	include_directories(${Boost_INCLUDE_DIR})
 	add_definitions(-DBOOST_ALL_NO_LIB)
-	set(OGRE_LIBRARIES ${OGRE_LIBRARIES} ${Boost_LIBRARIES})
 endif()
 
 # message(STATUS !!!!!!!!!!!!!!! ${Boost_INCLUDE_DIR})
@@ -113,21 +106,13 @@ endif()
 #   finding OIS
 ###############################################################################
 
-set ( OIS_LIBRARY_NAMES OIS)
+set ( OIS_LIBRARY_NAMES_REL OIS)
+set ( OIS_LIBRARY_NAMES_DEBUG OIS_d)
 
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-	set ( OIS_LIBRARY_NAMES OIS_d)
-endif ()
+find_path ( OIS_INCLUDE_DIRS OIS.h PATHS "${OIS_HOME}/include/OIS")
 
-find_path ( OIS_INCLUDE_DIRS
-  	OIS.h PATHS
-  	"${OIS_HOME}/include/OIS"
- )
-
-find_library (OIS_LIBRARIES
- ${OIS_LIBRARY_NAMES} PATHS
- "${OIS_HOME}/lib/${CMAKE_BUILD_TYPE}"
-)
+find_library (OIS_LIBRARIES_REL ${OIS_LIBRARY_NAMES_REL} PATHS "${OIS_HOME}/lib/${CMAKE_BUILD_TYPE}")
+find_library (OIS_LIBRARIES_DEBUG ${OIS_LIBRARY_NAMES_DEBUG} PATHS "${OIS_HOME}/lib/${CMAKE_BUILD_TYPE}")
 
  ################################################################################
  #   finding Bullet
@@ -146,14 +131,20 @@ include_directories( ${OIS_INCLUDE_DIRS}
  
  # Для того чтобы в коде можно было поставить условие(#ifdef _DEBUG)
 if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
-	add_definitions( -D_DEBUG )          
+	add_definitions( -D_DEBUG )  
+else()
+    add_definitions( -DN_DEBUG )      
 endif() 								 
 
 add_executable(${PROJECT} WIN32 ${HDRS} ${SRCS})
  
 set_target_properties(${PROJECT} PROPERTIES DEBUG_POSTFIX _d)
 
-target_link_libraries(${PROJECT} ${OGRE_LIBRARIES} ${OIS_LIBRARIES} ${BULLET_LIBRARIES})
+if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
+	target_link_libraries(${PROJECT} ${OGRE_LIBRARIES_DEBUG} ${OIS_LIBRARIES_DEBUG} ${BULLET_LIBRARIES} ${Boost_LIBRARIES})
+else()
+	target_link_libraries(${PROJECT} ${OGRE_LIBRARIES_REL} ${OIS_LIBRARIES_REL} ${BULLET_LIBRARIES} ${Boost_LIBRARIES})
+endif()
 
 if(MINGW)
 	set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE})
