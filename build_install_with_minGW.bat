@@ -4,8 +4,8 @@ SET MinGW_dir="c:\MinGW\bin"
 SET CMake_exe="C:\Program Files (x86)\CMake 2.8\bin\cmake.exe"
 
 ::set dirs
-SET Project_sources_dir="c:\Projects\git_repo\Ragdoll_Sample"
-SET Project_builded_dir="c:\Projects\git_repo\Ragdoll_Sample_build"
+SET Project_sources_dir="."
+SET Project_builded_dir="."
 
 
 echo =======================================================
